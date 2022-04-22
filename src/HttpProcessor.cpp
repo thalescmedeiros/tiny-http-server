@@ -35,6 +35,7 @@ void HttpProcessor::HandleRequest(std::unique_ptr<HttpClientBase> &client, CUSTO
     double timeEllapsed = 0;
     if (client->GetCurrentState() == IDLE)
     {
+        client->NewTransaction();
         client->StartReceivingNewRequest();
         client->SetState(RECEIVING_REQUEST);
     }
@@ -49,6 +50,9 @@ void HttpProcessor::HandleRequest(std::unique_ptr<HttpClientBase> &client, CUSTO
         {
             // If we finish receiving, let's identify the request
             this->IdentifyRequest(client->GetCurrentRequest());
+
+            // DEBUG
+            std::cout << "(" << client->GetId() << "): " << client->GetCurrentRequest()->GetMethod() << " " << client->GetCurrentRequest()->GetPath() << "\n";
 
             // And fill in the response object with starting data
             this->InitializeResponse(client);

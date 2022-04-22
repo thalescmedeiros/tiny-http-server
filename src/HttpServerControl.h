@@ -20,6 +20,7 @@ class HttpServerControl
 		HttpServerControl();
 		~HttpServerControl();
 		void Initialize();
+		void UsersUpdated();
 		bool AddClient(std::unique_ptr<HttpClient> &client);
 		void Tick();
 		void RemoveClient(std::unique_ptr<HttpClient> &client);

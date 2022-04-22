@@ -1,6 +1,6 @@
 #ifdef __WIN64
 
-#define DEBUG
+//#define DEBUG
 //#define ERRORS_ANALYSIS
 
 #include <memory>

@@ -23,8 +23,6 @@ HttpServerControl::~HttpServerControl()
     // Closing any connected client
     if (!clients.empty())
     {
-        // for (int i = 0; i < clients.size(); i++)
-        //     clients[i]->Die();
         for (const auto &client : clients)
             client.get()->Die();
 
@@ -38,6 +36,11 @@ HttpServerControl::~HttpServerControl()
 void HttpServerControl::Initialize()
 {
     server->Start();
+}
+
+void HttpServerControl::UsersUpdated()
+{
+    this->SendTextToWSClients(EVENT_WS_USERS_CHANGED, this->GetOnlineUsersJson());
 }
 
 bool HttpServerControl::AddClient(std::unique_ptr<HttpClient> &client)
@@ -54,7 +57,7 @@ bool HttpServerControl::AddClient(std::unique_ptr<HttpClient> &client)
     clients.push_back(std::move(client));
 
     // Generating event for change in connected users
-    this->SendTextToWSClients(EVENT_WS_USERS_CHANGED, this->GetOnlineUsersJson());
+    this->UsersUpdated();
 
     return true;
 }
@@ -102,7 +105,7 @@ void HttpServerControl::RemoveClient(std::unique_ptr<HttpClient> &client)
     clients.erase(std::remove(clients.begin(), clients.end(), client), clients.end());
 
     // Generating event for change in connected users
-    this->SendTextToWSClients(EVENT_WS_USERS_CHANGED, this->GetOnlineUsersJson());
+    this->UsersUpdated();
 }
 
 void HttpServerControl::SendTextToWSClients(int eventType, std::string textOut)
@@ -132,10 +135,29 @@ std::string HttpServerControl::GetOnlineUsersJson()
         if (first) first = false;
         else json += ",";
 
+        auto & request = client->GetCurrentRequest();
+        auto route = request ? request->GetRoute() : NULL;
+
         json += "{";
         json += "\"Id\":" + std::to_string(client->GetId());
         json += ",\"IPV4Address\":\"" + client->GetIPV4Address() + "\"";
         json += ",\"ClientPort\":" + std::to_string(client->GetClientPortNumber());
+        json += ",\"TimeStartConnection\":\"" + CustomCurrentTimeToJsonFormat(client->GetTimeStartConnection()) + "\"";
+        json += ",\"TimeLastTransaction\":\"" + CustomCurrentTimeToJsonFormat(client->GetTimeLastTransaction()) + "\"";
+        json += ",\"NumberTransactions\":" + std::to_string(client->GetNumberTransactions());
+        json += ",\"InactiveTimeMS\":" + std::to_string(client->GetInactiveTime());
+        if (route == NULL) json += ",\"LastRequest\":null";
+        else
+        {
+            json += ",\"LastRequest\":{";
+            json += "\"Method\":\"" + route->GetMethod() + "\"";
+            json += ",\"Url\":\"" + request->GetPath() + "\"";
+            json += ",\"RequestType\":\"";
+            json += (route->GetRequestType() == SERVER_COMMAND ? "SERVER_COMMAND" :
+                route->GetRequestType() == FILE_FROM_SYSTEM ? "FILE_FROM_SYSTEM" :
+                route->GetRequestType() == FRIENDLY_PATH ? "FRIENDLY_PATH" : "WEB_SOCKET");
+            json += "\"}";
+        }
         json += "}";
     }
     json += "]}";

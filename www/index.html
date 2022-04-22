@@ -12,7 +12,7 @@
         .font-red { color: red; }
         .text-center { text-align: center; }
         .text-right { text-align: right; }
-        table thead th { width: 200px; font-weight: bold; text-align: center; background-color: #cccccc; }
+        table thead th { min-width: 120px; font-weight: bold; text-align: center; background-color: #cccccc; }
         table tfoot tr { background-color: #eaeaea; }
     </style>
 </head>
@@ -22,18 +22,28 @@
     <table>
         <thead>
             <tr>
-                <th colspan="3">USERS</th>
+                <th colspan="10">USERS</th>
             </tr>
             <tr>
-                <th>ID</th>
-                <th>IP</th>
-                <th>Port</th>
+                <th rowspan="2">ID</th>
+                <th rowspan="2">IP</th>
+                <th rowspan="2">Port</th>
+                <th rowspan="2">Time Start</th>
+                <th rowspan="2">Last Refresh</th>
+                <th rowspan="2">Transactions</th>
+                <th rowspan="2">Inactive Time</th>
+                <th colspan="4">Last Request</th>
+            </tr>
+            <tr>
+                <th>Method</th>
+                <th>Path</th>
+                <th>Type</th>
             </tr>
         </thead>
         <tbody id="t-users"></tbody>
         <tfoot>
             <tr>
-                <td id="lbl-num-users" colspan="3" class="text-right"></td>
+                <td id="lbl-num-users" colspan="10" class="text-right"></td>
             </tr>
         </tfoot>
     </table>
@@ -65,7 +75,7 @@
                 let self = this;
                 if (self.isAlive) self.SendMessage('ok');
                 else return;
-                setTimeout(_ => self.KeepSocketAlive(), 5000);
+                setTimeout(_ => self.KeepSocketAlive(), 20000);
             }
 
             SendMessage(txt) {
@@ -75,9 +85,14 @@
 
         var s1, s2;
         var lastUpdate = null;
-
         O = id => document.getElementById(id);
-
+        function formatDateTime(dt) {
+            let d = new Date(dt);
+            console.log(dt);
+            return (d.getDate() < 9 ? '0' : '') + d.getDate() + '/' + (d.getMonth() < 8 ? '0' : '') + (d.getMonth() + 1)
+                + '/' + d.getFullYear() + ' ' + (d.getHours() < 9 ? '0' : '') + d.getHours() + ':'
+                + (d.getMinutes() < 9 ? '0' : '') + d.getMinutes() + ':' + (d.getSeconds() < 9 ? '0' : '') + d.getSeconds();
+        }
         function messageReceived(s, txt) {
             if (txt.data === 'ok') lastUpdate = new Date();
             else {
@@ -85,9 +100,20 @@
                 if (c.Users) {
                     let html = '';
                     for (let i in c.Users)
-                        html += '<tr><td class="text-center">' + c.Users[i].Id + '</td>' +
-                                '<td class="text-center">' + c.Users[i].IPV4Address + '</td>' +
-                                '<td class="text-center">' + c.Users[i].ClientPort + '</td></tr>';
+                    {
+                        let u = c.Users[i];
+                        html += '<tr><td class="text-center">' + u.Id + '</td>' +
+                                '<td class="text-center">' + u.IPV4Address + '</td>' +
+                                '<td class="text-center">' + u.ClientPort + '</td>' +
+                                '<td class="text-center">' + formatDateTime(u.TimeStartConnection) + '</td>' +
+                                '<td class="text-center">' + formatDateTime(u.TimeLastTransaction) + '</td>' +
+                                '<td class="text-center">' + u.NumberTransactions + '</td>' +
+                                '<td class="text-center">' + (u.InactiveTimeMS / 1000).toFixed(0) + '</td>' +
+                                '<td class="text-center">' + (u.LastRequest ? u.LastRequest.Method : '-') + '</td>' +
+                                '<td class="text-center">' + (u.LastRequest ? u.LastRequest.Url : '-') + '</td>' +
+                                '<td class="text-center">' + (u.LastRequest ? u.LastRequest.RequestType : '-') + '</td>' +
+                                '</tr>';
+                    }
                     O('t-users').innerHTML = html;
                     O('lbl-num-users').innerText = c.Users.length + ' user' + (c.Users.length == 1 ? '' : 's') + ' connected';
                 }

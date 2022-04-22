@@ -44,7 +44,7 @@ void HttpResponseFile::InitializeResponse(std::unique_ptr<HttpClientBase> &clien
     file.close();
     this->bytesSent = 0;
 // std::cout << "size: " << std::to_string(fileSize) << "\n";
-    std::cout << "requestedPath: " << requestedPath << " (" << std::to_string(fileSize) << " bytes)\n";
+    std::cout << "(" << client->GetId() << "): " << "requestedPath: " << requestedPath << " (" << std::to_string(fileSize) << " bytes)\n";
 
     // Getting extension
     std::string extension = "";

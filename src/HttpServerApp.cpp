@@ -18,7 +18,7 @@
 HttpServerApp::HttpServerApp()
 {
     allowFileServing = true;
-    localFolder = "./www";
+    localFolder = "../www";
 
     routes.push_back(HttpServerRoute(JSON_OPEN, "/open", "GET", SERVER_COMMAND));
     routes.push_back(HttpServerRoute(JSON_CLOSE, "/close", "GET", SERVER_COMMAND));
@@ -93,7 +93,7 @@ bool HttpServerApp::HandleWebSocket(std::unique_ptr<HttpClientBase> &client, CUS
             // The NewTransaction keeps te client active
             client->NewTransaction();
 
-            std::cout << "WS: \"" << textReceived << "\"\n";
+            //std::cout << "WS: \"" << textReceived << "\"\n";
         }
 
         // Checking if there's any message in the server to be sent

@@ -28,7 +28,14 @@ void HttpClientBase::SetMustClose(bool mustClose) { this->mustClose = mustClose;
 // Every time a new request is received by the client,
 // we record as "new transaction", keeping track of how
 // long ago the client is idle
-void HttpClientBase::NewTransaction() { this->numberTransactions++; this->timeLastTransaction = GetCustomCurrentTime(); }
+void HttpClientBase::NewTransaction()
+{
+    this->numberTransactions++;
+    this->timeLastTransaction = GetCustomCurrentTime();
+    
+    // Generating event for change in connected users
+    server->UsersUpdated();
+}
 CUSTOM_TIME HttpClientBase::GetTimeStartConnection() { return timeStartConnection; }
 CUSTOM_TIME HttpClientBase::GetTimeLastTransaction() { return timeLastTransaction; }
 int HttpClientBase::GetNumberTransactions() { return this->numberTransactions; }
