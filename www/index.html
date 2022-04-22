@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="img/favicon.png" type="image/x-icon">
+    <title>Test</title>
+    <style>
+        body, div, td, p, span { font-weight: 400; font-family: arial,sans-serif; font-size: 14px; }
+        .font-green { color: green; }
+        .font-red { color: red; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        table thead th { width: 200px; font-weight: bold; text-align: center; background-color: #cccccc; }
+        table tfoot tr { background-color: #eaeaea; }
+    </style>
+</head>
+<body>
+    You are <span id="lbl-status" class="font-red">off-line</span>.
+
+    <table>
+        <thead>
+            <tr>
+                <th colspan="3">USERS</th>
+            </tr>
+            <tr>
+                <th>ID</th>
+                <th>IP</th>
+                <th>Port</th>
+            </tr>
+        </thead>
+        <tbody id="t-users"></tbody>
+        <tfoot>
+            <tr>
+                <td id="lbl-num-users" colspan="3" class="text-right"></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <script type="text/javascript">
+        class WSocket {
+            constructor(path, keepAlive, autoRestart, onMessage, onStatusChange) {
+                this.url = "ws://" + location.host + '/' + path;
+                this.keepAlive = keepAlive;
+                this.autoRestart = autoRestart;
+                this.socket = null;
+                this.hasError = false;
+                this.isAlive = false;
+                this.onMessage = onMessage;
+                this.onStatusChange = onStatusChange;
+                this.Start();
+            }
+
+            Start() {
+                let self = this;
+                self.socket = new WebSocket(self.url);
+                self.socket.onopen = _ => { self.hasError = false; self.isAlive = true; self.onStatusChange?.(true); if (self.keepAlive) self.KeepSocketAlive(); };
+                self.socket.onerror = _ => { if (self.hasError) return; self.hasError = true; };
+                self.socket.onclose = c => { self.isAlive = false; self.onStatusChange?.(false); if (c.code === 1006 && self.autoRestart) setTimeout(_ => self.Start(), 5000); };
+                self.socket.onmessage = s => self.onMessage?.(self, s);
+            }
+
+            KeepSocketAlive() {
+                let self = this;
+                if (self.isAlive) self.SendMessage('ok');
+                else return;
+                setTimeout(_ => self.KeepSocketAlive(), 5000);
+            }
+
+            SendMessage(txt) {
+                if (this.isAlive) this.socket.send(txt);
+            }
+        };
+
+        var s1, s2;
+        var lastUpdate = null;
+
+        O = id => document.getElementById(id);
+
+        function messageReceived(s, txt) {
+            if (txt.data === 'ok') lastUpdate = new Date();
+            else {
+                var c = JSON.parse(txt.data);
+                if (c.Users) {
+                    let html = '';
+                    for (let i in c.Users)
+                        html += '<tr><td class="text-center">' + c.Users[i].Id + '</td>' +
+                                '<td class="text-center">' + c.Users[i].IPV4Address + '</td>' +
+                                '<td class="text-center">' + c.Users[i].ClientPort + '</td></tr>';
+                    O('t-users').innerHTML = html;
+                    O('lbl-num-users').innerText = c.Users.length + ' user' + (c.Users.length == 1 ? '' : 's') + ' connected';
+                }
+                console.log(c);
+                //$(document).trigger('UpdateReceived', c);
+            }
+        }
+
+        function statusChanged(st) {
+            O('lbl-status').innerText = st ? 'On-line' : 'Off-line';
+            if (!st) O('lbl-num-users').innerText = '';
+            if (st) O('lbl-status').classList.add('font-green');
+            else O('lbl-status').classList.remove('font-green');
+            if (!st) O('lbl-status').classList.add('font-red');
+            else O('lbl-status').classList.remove('font-red');
+        }
+
+        window.addEventListener('load', _ => {
+            s1 = new WSocket('online', true, true, messageReceived, statusChanged);
+            s2 = new WSocket('users-online', true, true, messageReceived);
+        });
+    </script>
+</body>
+</html>
