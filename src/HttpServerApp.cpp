@@ -19,17 +19,18 @@ HttpServerApp::HttpServerApp()
 {
     allowFileServing = true;
     localFolder = "../www";
+    isNTLMActive = true;
 
-    routes.push_back(HttpServerRoute(JSON_OPEN, "/open", "GET", SERVER_COMMAND));
-    routes.push_back(HttpServerRoute(JSON_CLOSE, "/close", "GET", SERVER_COMMAND));
-    routes.push_back(HttpServerRoute(WS_USERS_ONLINE, "/users-online", "GET", WEB_SOCKET));
-    routes.push_back(HttpServerRoute(WS_ONLINE, "/online", "GET", WEB_SOCKET));
+    routes.push_back(HttpServerRoute(JSON_OPEN, "/open", "GET", false, SERVER_COMMAND));
+    routes.push_back(HttpServerRoute(JSON_CLOSE, "/close", "GET", false, SERVER_COMMAND));
+    routes.push_back(HttpServerRoute(WS_USERS_ONLINE, "/users-online", false, "GET", WEB_SOCKET));
+    routes.push_back(HttpServerRoute(WS_ONLINE, "/online", "GET", false, WEB_SOCKET));
 
-    routes.push_back(HttpServerRoute(PAGE_START, "/", "/index.html", "GET", FRIENDLY_PATH));
-    routes.push_back(HttpServerRoute(PAGE_FILES, "/*.html", "GET", FILE_FROM_SYSTEM));
-    routes.push_back(HttpServerRoute(PAGE_FILES, "/img/*.*", "GET", FILE_FROM_SYSTEM));
-    routes.push_back(HttpServerRoute(PAGE_FILES, "/css/*.css", "GET", FILE_FROM_SYSTEM));
-    routes.push_back(HttpServerRoute(PAGE_FILES, "/js/*.js", "GET", FILE_FROM_SYSTEM));
+    routes.push_back(HttpServerRoute(PAGE_START, "/", "/index.html", "GET", false, FRIENDLY_PATH));
+    routes.push_back(HttpServerRoute(PAGE_FILES, "/*.html", "GET", false, FILE_FROM_SYSTEM));
+    routes.push_back(HttpServerRoute(PAGE_FILES, "/img/*.*", "GET", false, FILE_FROM_SYSTEM));
+    routes.push_back(HttpServerRoute(PAGE_FILES, "/css/*.css", "GET", false, FILE_FROM_SYSTEM));
+    routes.push_back(HttpServerRoute(PAGE_FILES, "/js/*.js", "GET", false, FILE_FROM_SYSTEM));
 }
 
 bool HttpServerApp::GetResponseToRequest(std::unique_ptr<HttpRequest> &request, std::unique_ptr<HttpClientBase> &client)
@@ -63,11 +64,11 @@ bool HttpServerApp::HandleWebSocket(std::unique_ptr<HttpClientBase> &client, CUS
             HttpWebSocket::SendTextMessage(client, client->GetServer()->GetOnlineUsersJson());
         }
 
-        // Checking for any incoming text
+        // Checking for any incoming text from the client
         std::string textReceived;
         if (HttpWebSocket::ProcessIncomingMessage(client, textReceived))
         {
-            // The NewTransaction keeps te client active
+            // The NewTransaction keeps the client active
             client->NewTransaction();
         }
 
@@ -83,7 +84,7 @@ bool HttpServerApp::HandleWebSocket(std::unique_ptr<HttpClientBase> &client, CUS
     {
         if (startConnection)
         {
-            HttpWebSocket::SendTextMessage(client, std::string("{\"Text\":\"oi\"}"));
+            HttpWebSocket::SendTextMessage(client, std::string("{\"Text\":\"First hi!\"}"));
         }
 
         // Checking for any incoming text
@@ -100,7 +101,7 @@ bool HttpServerApp::HandleWebSocket(std::unique_ptr<HttpClientBase> &client, CUS
         int eventType;
         std::string textOut;
         if (client->GetServer()->HasWebSocketMessageToSend(eventType, textOut)
-            && eventType != EVENT_WS_USERS_CHANGED)
+            && eventType == EVENT_WS_CUSTOM_1)
             HttpWebSocket::SendTextMessage(client, textOut);
     }
     

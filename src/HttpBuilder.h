@@ -15,6 +15,7 @@ class HttpBuilder
         static void BadRequest(std::unique_ptr<HttpClientBase> &client);
         static void InternalServerError(std::unique_ptr<HttpClientBase> &client);
         static void ServerTooBusy(std::unique_ptr<HttpClientBase> &client);
+        static void NotAuthorized(std::unique_ptr<HttpClientBase> &client);
 
         static std::string GetMimeTypeByExtension(std::string extension);
 };

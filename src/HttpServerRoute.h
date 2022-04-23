@@ -14,20 +14,22 @@ class HttpServerRoute
 {
     public:
         HttpServerRoute() { }
-        HttpServerRoute(int idPage, std::string url, std::string method, REQUEST_TYPE requestType)
-            : idPage(idPage), url(url), method(method), requestType(requestType) { }
-        HttpServerRoute(int idPage, std::string url, std::string pathMapped, std::string method, REQUEST_TYPE requestType)
-            : idPage(idPage), url(url), pathMapped(pathMapped), method(method), requestType(requestType) { }
+        HttpServerRoute(int idPage, std::string url, std::string method, bool mustBeAuthenticated, REQUEST_TYPE requestType)
+            : idPage(idPage), url(url), method(method), mustBeAuthenticated(mustBeAuthenticated), requestType(requestType) { }
+        HttpServerRoute(int idPage, std::string url, std::string pathMapped, std::string method, bool mustBeAuthenticated, REQUEST_TYPE requestType)
+            : idPage(idPage), url(url), pathMapped(pathMapped), method(method), mustBeAuthenticated(mustBeAuthenticated), requestType(requestType) { }
 
         int GetIdPage() { return idPage; }
         std::string GetUrl() { return url; }
         std::string GetPathMapped() { return pathMapped; }
         std::string GetMethod() { return method; }
+        bool GetMustBeAuthenticated() { return mustBeAuthenticated; }
         REQUEST_TYPE GetRequestType() { return requestType; }
         bool PathMatchesUrlPattern(std::string path);
 
     private:
         int idPage;
+        bool mustBeAuthenticated;
         std::string url;
         std::string method;
         std::string pathMapped;

@@ -16,17 +16,19 @@ class HttpServerApp
         HttpServerApp();
         
         bool IdentifyRequest(std::unique_ptr<HttpRequest> &request);
-        bool GetResponseToRequest(std::unique_ptr<HttpRequest> &request, std::unique_ptr<HttpClientBase> &client);
-        bool HandleWebSocket(std::unique_ptr<HttpClientBase> &client, CUSTOM_TIME timeStart);
+        virtual bool GetResponseToRequest(std::unique_ptr<HttpRequest> &request, std::unique_ptr<HttpClientBase> &client) { }
+        virtual bool HandleWebSocket(std::unique_ptr<HttpClientBase> &client, CUSTOM_TIME timeStart) { }
 
         std::vector<HttpServerRoute> &GetRoutes() { return routes; }
         bool GetAllowFileServing() { return allowFileServing; }
         std::string GetLocalFolder() { return localFolder; }
+        bool GetIsNTLMActive() { return isNTLMActive; }
 
     private:
         std::vector<HttpServerRoute> routes;
         bool allowFileServing;
         std::string localFolder;
+        bool isNTLMActive;
 };
 
 #endif

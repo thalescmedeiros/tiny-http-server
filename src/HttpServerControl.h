@@ -11,6 +11,7 @@
 #include "HttpProcessor.h"
 
 #define EVENT_WS_USERS_CHANGED 			101
+#define EVENT_WS_CUSTOM_1 				102
 
 class HttpClient;
 

@@ -12,10 +12,12 @@ int main(int argc, char const *argv[])
     httpServer->Initialize();
 
     CUSTOM_TIME lastMessageSent = GetCustomCurrentTime();
-    // int times = 0;
     while (true)
     {
+        // Mandatory TICK to handle everything
         httpServer->Tick();
+
+        // Sleeping for 10ms
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
         // Adding a message to be sent to all WebSockets every 5 seconds
@@ -24,15 +26,9 @@ int main(int argc, char const *argv[])
         if (timeEllapsed > 5000)
         {
             lastMessageSent = timeNow;
-            httpServer->SendTextToWSClients(100, std::string("{\"Text\":\"hi again!\"}"));
+            httpServer->SendTextToWSClients(EVENT_WS_CUSTOM_1, std::string("{\"Text\":\"hi again!\"}"));
         }
-
-        // times++;
-        // if (TIME_DIFF_TO_MSECS_DOUBLE(GetCustomCurrentTime() - timeNow) > 30000)
-        //     break;
     }
-
-    // std::cout << times << " times!\n";
 
     return 0;
 }

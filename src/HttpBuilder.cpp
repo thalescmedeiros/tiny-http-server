@@ -88,6 +88,12 @@ void HttpBuilder::ServerTooBusy(std::unique_ptr<HttpClientBase> &client)
 	HttpBuilder::FromHtml(503, html, client);
 }
 
+void HttpBuilder::NotAuthorized(std::unique_ptr<HttpClientBase> &client)
+{
+    std::string html = "Unauthorized Status";
+	HttpBuilder::FromHtml(401, html, client);
+}
+
 typedef struct {
     const char* key;
     const char* value;

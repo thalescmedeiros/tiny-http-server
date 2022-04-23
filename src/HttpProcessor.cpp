@@ -236,10 +236,21 @@ void HttpProcessor::InitializeResponse(std::unique_ptr<HttpClientBase> &client)
 {
     std::unique_ptr<HttpRequest> &request = client->GetCurrentRequest();
     HttpServerRoute *route = request->GetRoute();
+    bool needsAuthenticationResponse = false;
 
     if (route == NULL)
     {
         HttpBuilder::NotFound(client);
+    }
+    else if (route->GetMustBeAuthenticated() && !client->IsAuthenticated() && !server->AuthenticateClient(client, &needsAuthenticationResponse))
+    {
+        HttpBuilder::NotAuthorized(client);
+        if (server->GetApp()->GetIsNTLMActive() && client->GetCurrentResponse())
+            client->GetCurrentResponse()->AddHeader("WWW-Authenticate", "NTLM");
+    }
+    else if (needsAuthenticationResponse)
+    {
+
     }
     else if (route->GetRequestType() == WEB_SOCKET)
     {
